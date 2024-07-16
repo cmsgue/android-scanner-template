@@ -1,0 +1,155 @@
+<html>
+<head>
+    <title>Scan QRCode</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no'>
+    <style>
+        :root {
+            --main-bg-color-dark: #202124;
+            --main-color-dark: #e8eaed;
+            --main-bg-color-light: #f5f5f5;
+            --main-color-light: #202124;
+            --accent-color: #2263a4;
+            --accent-color-1: #f1f0ab;
+            --primary: #044BD9;
+            --primary-hover: #366FE1;
+            --primary-pressed: #6893E8;
+            --secondary: #DFE4F2;
+            --bg: #111;
+            --grayscale-gs-primary: #232329;
+            --primary-2: #43434E;
+            --grayscale-gs-secondary-1: #68687B;
+            --grayscale-gs-secondary-2: #A1A1AF;
+            --grayscale-gs-tetriary-1: #B0B0BC;
+            --grayscale-gs-tetriary-2: #D0D0D7;
+            --grayscale-gs-quarterly-1: #DFDFE4;
+            --grayscale-gs-background-darker: #F3F4F7;
+            --grayscale-gs-background: #FAFAFA;
+            --grayscale-gs-quarterly-2: #FDFDFD;
+            --grayscale-gs-white: #FFF;
+        }
+        
+        #reader__scan_region img{
+              width: 236px!important; /* Width of new image */
+              height: 236px!important; /* Height of new image */
+              margin: 0 0 0 0px; 
+        }
+        
+        #reader__dashboard button.html5-qrcode-element{
+            min-height:35px!important;
+            color: var(--grayscale-gs-white)!important;
+            border-radius:10px 10px!important;
+            background-color:var(--primary)!important;
+            border:var(--primary)!important;
+        }
+
+        #reader__dashboard button.html5-qrcode-element:hover {
+            color: var(--grayscale-gs-white)!important;
+            background-color: var(--primary-hover)!important;
+            border-color: var(--primary-hover)!important;
+        }
+        
+@media screen and (max-width:767px) {
+  body {
+    background-color: #de3163;
+  }
+}
+    </style>
+</head>
+<body>
+<div id="reader" width="600px"></div>
+<div style="text-align:center;font-size:20px;font-weight:bold;">Hasil Scan: <div id="result_scan" class="result_scan"></div></div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js" integrity="sha512-PmUsQP+cCo6jmFgvZO+Wgig+LDFXpXcqYQizbW3fnZxWi5xct2z5wqNoToOG/tmdmugZRNdL1QmTM5nmNWssBg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="libs/node_modules/html5-qrcode/html5-qrcode.min.js"></script>
+<script>
+function docReady(fn) {
+    // see if DOM is already available
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        // call on next available tick
+        setTimeout(fn, 1);
+    } else {
+        document.addEventListener("DOMContentLoaded", fn);
+    }
+}
+
+docReady(function() {
+	hljs.initHighlightingOnLoad();
+	
+	let lastMessage;
+	let codeId = 0;
+
+    const AUDIO = new Audio();
+    AUDIO.autoplay = true;
+    
+    const DATA_URL = "https://www.fesliyanstudios.com/play-mp3/387";  
+    
+    const beep = () => {
+        AUDIO.src = DATA_URL;
+    }
+	
+	let currentText = '';
+	
+	function onScanSuccess(decodedText, decodedResult) {
+	    let decode = decodedText;
+	    
+	    if(currentText!==decodedText){
+	        document.querySelector("div.result_scan").textContent=" "+decode;
+	        
+	        //sound
+	        beep();
+	        
+	        //send to server
+	    }
+	    
+	    html5QrcodeScanner.clear();
+	}
+	
+    function onScanFailure(error) {
+       console.log(error);
+    }
+
+    var qrboxFunction = function(viewfinderWidth, viewfinderHeight) {
+        // Square QR Box, with size = 80% of the min edge.
+        var minEdgeSizeThreshold = 250;
+        var edgeSizePercentage = 0.75;
+        var minEdgeSize = (viewfinderWidth > viewfinderHeight) ?
+            viewfinderHeight : viewfinderWidth;
+        var qrboxEdgeSize = Math.floor(minEdgeSize * edgeSizePercentage);
+        if (qrboxEdgeSize < minEdgeSizeThreshold) {
+            if (minEdgeSize < minEdgeSizeThreshold) {
+                return {width: minEdgeSize, height: minEdgeSize};
+            } else {
+                return {
+                    width: minEdgeSizeThreshold,
+                    height: minEdgeSizeThreshold
+                };
+            }
+        }
+        return {width: qrboxEdgeSize, height: qrboxEdgeSize};
+    }
+    
+	let html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", 
+        { 
+            fps: 10,
+            qrbox: qrboxFunction,
+            // Important notice: this is experimental feature, use it at your
+            // own risk. See documentation in
+            // mebjas@/html5-qrcode/src/experimental-features.ts
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            },
+            rememberLastUsedCamera: true,
+            showTorchButtonIfSupported: true
+        });
+	html5QrcodeScanner.render(onScanSuccess,onScanFailure);
+	
+    // for iOS audio
+    // https://stackoverflow.com/questions/31776548/why-cant-javascript-play-audio-files-on-iphone-safari
+    // document.querySelector("#sound").addEventListener("click", () => {
+    //   beep();
+    // });	
+});
+</script>
+</html>
